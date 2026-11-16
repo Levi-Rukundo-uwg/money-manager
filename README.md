@@ -93,9 +93,4 @@ focuses on View Log, Add Income, and Add Expenses, with supporting login.
 ## Limitations
 
 - Transactions are stored in memory and reset when the application closes.
-- Recurring income, expense-breakdown charts, category-detail views,
-  projections, and budgeting are not implemented.
 - Only one demonstration account and role are provided.
-- Log retrieval-error handling is defensive. The current in-memory store
-  does not normally produce retrieval failures, and that failure path
-  has not been demonstrated through the interface.
