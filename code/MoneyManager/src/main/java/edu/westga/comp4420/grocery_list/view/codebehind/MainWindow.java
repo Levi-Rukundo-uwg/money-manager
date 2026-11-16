@@ -2,6 +2,7 @@ package edu.westga.comp4420.grocery_list.view.codebehind;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.List;
 
 import edu.westga.comp4420.grocery_list.model.Transaction;
 import edu.westga.comp4420.grocery_list.model.TransactionLog;
@@ -20,6 +21,7 @@ import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
@@ -31,6 +33,9 @@ import javafx.stage.Stage;
  * @version Fall 2026
  */
 public class MainWindow {
+
+    private static final String EMPTY_LOG_MESSAGE =
+            "No transactions recorded.";
 
     @FXML
     private AnchorPane guiPane;
@@ -54,6 +59,8 @@ public class MainWindow {
         VBox content = new VBox(12, new Label("Money Manager"),
                 buttons, this.incomeTotal, this.table, this.message);
         content.setPadding(new Insets(20));
+        this.message.setWrapText(true);
+        VBox.setVgrow(this.table, Priority.ALWAYS);
         AnchorPane.setTopAnchor(content, 0.0);
         AnchorPane.setBottomAnchor(content, 0.0);
         AnchorPane.setLeftAnchor(content, 0.0);
@@ -84,7 +91,7 @@ public class MainWindow {
         this.table.getColumns().add(descriptionColumn);
         this.table.getColumns().add(amountColumn);
         this.table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
-        this.table.setPlaceholder(new Label("No transactions recorded."));
+        this.table.setPlaceholder(new Label(EMPTY_LOG_MESSAGE));
         this.table.setPrefHeight(350);
     }
 
@@ -96,12 +103,27 @@ public class MainWindow {
         return prefix + transaction.getAmount().toPlainString();
     }
 
-    private void refreshLog() {
-        this.table.setItems(FXCollections.observableArrayList(
-                this.log.getTransactions()));
-        this.incomeTotal.setText("Total income: $"
-                + this.log.getTotalIncome().toPlainString());
-        this.message.setText("Transactions: " + this.table.getItems().size());
+    private boolean refreshLog() {
+        List<Transaction> records;
+        BigDecimal totalIncome;
+        try {
+            records = this.log.getTransactions();
+            totalIncome = this.log.getTotalIncome();
+        } catch (RuntimeException exception) {
+            this.table.getItems().clear();
+            this.table.setPlaceholder(new Label("Transaction log unavailable."));
+            this.incomeTotal.setText("Total income: unavailable");
+            this.message.setText(
+                    "Unable to retrieve records. Click View Log to retry.");
+            return false;
+        }
+
+        this.table.setPlaceholder(new Label(EMPTY_LOG_MESSAGE));
+        this.table.setItems(FXCollections.observableArrayList(records));
+        this.incomeTotal.setText(
+                "Total income: $" + totalIncome.toPlainString());
+        this.message.setText("Transactions: " + records.size());
+        return true;
     }
 
     private void openEntry(TransactionType type) {
@@ -152,8 +174,13 @@ public class MainWindow {
             Transaction transaction = new Transaction(type, value,
                     date.getValue(), description.getText(), category.getValue());
             this.log.addTransaction(transaction);
-            this.refreshLog();
-            this.message.setText("Transaction recorded successfully.");
+            if (this.refreshLog()) {
+                this.message.setText("Transaction recorded successfully.");
+            } else {
+                this.message.setText(
+                        "Transaction recorded, but log unavailable. "
+                        + "Click View Log to retry; do not add it again.");
+            }
             ((Stage) error.getScene().getWindow()).close();
         } catch (NumberFormatException exception) {
             error.setText("Enter a valid numeric amount, such as 25.00.");
