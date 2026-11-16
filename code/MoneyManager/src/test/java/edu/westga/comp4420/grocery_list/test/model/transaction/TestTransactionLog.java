@@ -71,4 +71,48 @@ class TestTransactionLog {
         assertTrue(snapshot.isEmpty());
         assertEquals(1, log.getTransactions().size());
     }
+
+    @Test
+    void testEmptyLogHasZeroIncome() {
+        TransactionLog log = new TransactionLog();
+
+        assertEquals(0, BigDecimal.ZERO.compareTo(log.getTotalIncome()));
+    }
+
+    @Test
+    void testExpensesDoNotCountAsIncome() {
+        TransactionLog log = new TransactionLog();
+        log.addTransaction(this.createTransaction(TransactionType.EXPENSE));
+
+        assertEquals(0, BigDecimal.ZERO.compareTo(log.getTotalIncome()));
+    }
+
+    @Test
+    void testIncomeTotalUpdatesAfterEachEntry() {
+        TransactionLog log = new TransactionLog();
+        log.addTransaction(this.createTransaction(TransactionType.INCOME));
+
+        assertEquals(0, new BigDecimal("25.00").compareTo(log.getTotalIncome()));
+
+        log.addTransaction(new Transaction(TransactionType.INCOME,
+                new BigDecimal("10.50"), LocalDate.of(2026, 11, 16),
+                "Extra income", null));
+
+        assertEquals(0, new BigDecimal("35.50").compareTo(log.getTotalIncome()));
+    }
+
+    @Test
+    void testMixedTransactionsSumOnlyIncome() {
+        TransactionLog log = new TransactionLog();
+        log.addTransaction(this.createTransaction(TransactionType.INCOME));
+        log.addTransaction(this.createTransaction(TransactionType.EXPENSE));
+        log.addTransaction(new Transaction(TransactionType.INCOME,
+                new BigDecimal("0.10"), LocalDate.of(2026, 11, 16),
+                "Interest", null));
+        log.addTransaction(new Transaction(TransactionType.INCOME,
+                new BigDecimal("0.20"), LocalDate.of(2026, 11, 16),
+                "Additional interest", null));
+
+        assertEquals(0, new BigDecimal("25.30").compareTo(log.getTotalIncome()));
+    }
 }

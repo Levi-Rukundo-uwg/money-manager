@@ -1,5 +1,6 @@
 package edu.westga.comp4420.grocery_list.model;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -42,5 +43,20 @@ public final class TransactionLog {
     public List<Transaction> getTransactions() {
         return Collections.unmodifiableList(
                 new ArrayList<>(this.transactions));
+    }
+
+    /**
+     * Calculates total recorded income.
+     *
+     * @return the sum of income amounts, or zero when none exist
+     */
+    public BigDecimal getTotalIncome() {
+        BigDecimal total = BigDecimal.ZERO;
+        for (Transaction transaction : this.transactions) {
+            if (transaction.getType() == TransactionType.INCOME) {
+                total = total.add(transaction.getAmount());
+            }
+        }
+        return total;
     }
 }
