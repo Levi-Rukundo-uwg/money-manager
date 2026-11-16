@@ -38,6 +38,7 @@ public class MainWindow {
     private final TransactionLog log = new TransactionLog();
     private final TableView<Transaction> table = new TableView<>();
     private final Label message = new Label();
+    private final Label incomeTotal = new Label();
 
     @FXML
     void initialize() {
@@ -51,7 +52,7 @@ public class MainWindow {
 
         HBox buttons = new HBox(10, incomeButton, expenseButton, refreshButton);
         VBox content = new VBox(12, new Label("Money Manager"),
-                buttons, this.table, this.message);
+                buttons, this.incomeTotal, this.table, this.message);
         content.setPadding(new Insets(20));
         AnchorPane.setTopAnchor(content, 0.0);
         AnchorPane.setBottomAnchor(content, 0.0);
@@ -98,6 +99,8 @@ public class MainWindow {
     private void refreshLog() {
         this.table.setItems(FXCollections.observableArrayList(
                 this.log.getTransactions()));
+        this.incomeTotal.setText("Total income: $"
+                + this.log.getTotalIncome().toPlainString());
         this.message.setText("Transactions: " + this.table.getItems().size());
     }
 
